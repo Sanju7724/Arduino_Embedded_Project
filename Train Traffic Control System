@@ -1,0 +1,69 @@
+// Train Traffic Control System
+// Priority: 1 = Express, 2 = Freight, 3 = Passenger, 4 = Local
+// Lower number = Higher priority
+
+const int trainSensors[4] = {2, 3, 4, 5};  // Input pins for train detection
+const int signalLights[4] = {6, 7, 8, 9};  // Output pins for signals (LEDs)
+
+// Priority order array (change if you want different preferences)
+int priorityOrder[4] = {1, 2, 3, 4};
+
+void setup() {
+  Serial.begin(9600);
+
+  // Setup pins
+  for (int i = 0; i < 4; i++) {
+    pinMode(trainSensors[i], INPUT_PULLUP); // Sensors
+    pinMode(signalLights[i], OUTPUT);       // LEDs
+    digitalWrite(signalLights[i], LOW);     // All red initially
+  }
+
+  Serial.println("Train Traffic Control System Started");
+}
+
+void loop() {
+  int detectedTrain = -1;
+  
+  // Check trains based on priority
+  for (int p = 0; p < 4; p++) {
+    int trainIndex = getTrainIndexByPriority(priorityOrder[p]);
+    if (digitalRead(trainSensors[trainIndex]) == LOW) {
+      detectedTrain = trainIndex;
+      break; // Found highest priority train
+    }
+  }
+
+  if (detectedTrain != -1) {
+    allowTrain(detectedTrain);
+  } else {
+    allRed();
+  }
+
+  delay(500);
+}
+
+// Helper function: Get train index from priority
+int getTrainIndexByPriority(int priority) {
+  for (int i = 0; i < 4; i++) {
+    if (priorityOrder[i] == priority) return i;
+  }
+  return -1;
+}
+
+// Allow one train to pass
+void allowTrain(int index) {
+  Serial.print("Allowing Train: ");
+  Serial.println(index + 1);
+
+  allRed();
+  digitalWrite(signalLights[index], HIGH); // Green signal
+  delay(3000);                             // Pass time
+  digitalWrite(signalLights[index], LOW);  // Back to red
+}
+
+// Turn all signals red
+void allRed() {
+  for (int i = 0; i < 4; i++) {
+    digitalWrite(signalLights[i], LOW);
+  }
+}
