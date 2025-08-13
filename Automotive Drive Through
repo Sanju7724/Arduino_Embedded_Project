@@ -1,0 +1,68 @@
+#include <LiquidCrystal.h>
+#include <Servo.h>
+
+// LCD pins: RS, E, D4, D5, D6, D7
+LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
+
+// Servo motor
+Servo gateServo;
+
+// Button pins
+const int btnBurger = 6;
+const int btnPizza = 7;
+const int btnCoffee = 8;
+
+String order = "";
+bool orderPlaced = false;
+
+void setup() {
+  lcd.begin(16, 2);
+  lcd.print("Drive-Through");
+  delay(2000);
+  lcd.clear();
+
+  pinMode(btnBurger, INPUT_PULLUP);
+  pinMode(btnPizza, INPUT_PULLUP);
+  pinMode(btnCoffee, INPUT_PULLUP);
+
+  gateServo.attach(9);
+  gateServo.write(0); // Closed position
+
+  lcd.print("Select Order:");
+}
+
+void loop() {
+  if (!orderPlaced) {
+    if (digitalRead(btnBurger) == LOW) {
+      order = "Burger";
+      confirmOrder();
+    }
+    else if (digitalRead(btnPizza) == LOW) {
+      order = "Pizza";
+      confirmOrder();
+    }
+    else if (digitalRead(btnCoffee) == LOW) {
+      order = "Coffee";
+      confirmOrder();
+    }
+  }
+}
+
+void confirmOrder() {
+  lcd.clear();
+  lcd.print("Order: " + order);
+  lcd.setCursor(0, 1);
+  lcd.print("Preparing...");
+  delay(3000); // Simulate preparation time
+
+  lcd.clear();
+  lcd.print("Order Ready!");
+  lcd.setCursor(0, 1);
+  lcd.print(order);
+
+  gateServo.write(90); // Open gate
+  delay(5000);         // Keep gate open
+  gateServo.write(0);  // Close gate
+
+  orderPlaced = true;
+}
